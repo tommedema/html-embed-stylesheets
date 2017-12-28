@@ -1,0 +1,39 @@
+{
+  "name": "html-embed-stylesheets",
+  "version": "0.1.0",
+  "description": "Insert html and receive back html with all stylesheets embedded. Can resolve relative urls inside stylesheets to a given root url.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha test",
+    "e2e": "./node_modules/mocha/bin/mocha e2e --delay",
+    "standard": "./node_modules/standard/bin/cmd.js --env mocha",
+    "standard-fix": "npm run standard -- --fix",
+    "docs": "./node_modules/documentation/bin/documentation.js lint src/** && ./node_modules/documentation/bin/documentation.js build src/** -f md >> README.md"
+  },
+  "keywords": [
+    "html",
+    "stylesheet",
+    "css",
+    "embed",
+    "inline"
+  ],
+  "author": "Tom Medema",
+  "license": "MIT",
+  "devDependencies": {
+    "documentation": "^5.3.5",
+    "faux-jax": "^5.0.6",
+    "loud-rejection": "^1.6.0",
+    "ls": "^0.2.1",
+    "mime-types": "^2.1.17",
+    "mkdirp": "^0.5.1",
+    "mocha": "^4.0.1",
+    "should": "^13.1.3",
+    "standard": "^10.0.3"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "encodeurl": "^1.0.1",
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5"
+  }
+}
