@@ -218,10 +218,7 @@ describe('http mocking', function() {
     it('should replace multiple occurances to the same stylesheet with a single stylesheet', async () => {
       const input = await readFile(`${__dirname}/cases/duplicates.html`, { encoding: 'utf8' })
       const output = await readFile(`${__dirname}/cases/duplicates.output.html`, { encoding: 'utf8' })
-      const { html } = await embed(input, { resolveTo: baseUrl })
-      
-      console.log(html)
-      
+      const { html } = await embed(input, { resolveTo: baseUrl })      
       html.should.be.equal(output)
     })
   })

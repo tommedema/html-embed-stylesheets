@@ -91,7 +91,7 @@ async function embedStylesheets (html, opts = {}) {
   }
     
   return {
-    html: $.html(),
+    html: $.html({ decodeEntities: false }),
     stylesheetUrls: Array.from(stylesheetUrls),
     stylesheets,
     notFounds
