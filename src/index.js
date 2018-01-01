@@ -28,6 +28,7 @@ async function embedStylesheets (html, opts = {}) {
   opts = Object.assign({}, defaultOpts, opts)
   
   const $ = cheerio.load(html, {
+    decodeEntities: true,
     lowerCaseTags: true,
     lowerCaseAttributeNames: true
   })
@@ -91,7 +92,7 @@ async function embedStylesheets (html, opts = {}) {
   }
     
   return {
-    html: $.html({ decodeEntities: false }),
+    html: $.html(),
     stylesheetUrls: Array.from(stylesheetUrls),
     stylesheets,
     notFounds
