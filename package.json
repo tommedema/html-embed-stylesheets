@@ -17,6 +17,12 @@
     "embed",
     "inline"
   ],
+  "homepage": "https://github.com/tommedema/html-embed-stylesheets",
+  "bugs": {
+    "url": "https://github.com/tommedema/html-embed-stylesheets/issues",
+    "email": "tommedema@gmail.com"
+  },
+  "repository": "git@github.com:tommedema/html-embed-stylesheets.git",
   "author": "Tom Medema",
   "license": "MIT",
   "devDependencies": {

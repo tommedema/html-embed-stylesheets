@@ -2,16 +2,6 @@
 
 Insert html and receive back html with all stylesheets embedded. Can resolve relative urls inside stylesheets to a given root url.
 
-## ToDo
-- ~~create e2e suite based on final html output without scripts~~
-- ~~define API~~
-- find preload links and style tags with cheerio
-- resolve the found stylesheet urls
-- download each stylesheet
-- resolve each relative url in the stylesheet, ignoring element identifiers (e.g. for svgs)
-- embed the stylesheet in the resulting html
-- return the html
-
 ## Improvements
 - consider @import statements inside stylesheets
 - improve css url regex to not capture whitespace after uri, e.g. in case of `url( https://img.itch.zone/aW1hZ2UvMTgyMjY4Lzg1MTg3MC5wbmc=/300x240%23c/EWraUT.png );`
@@ -29,8 +19,9 @@ Insert html and receive back html with all stylesheets embedded. Can resolve rel
 **Parameters**
 
 -   `html` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** the HTML to parse for stylesheets
--   `opts` **{resolveTo: [string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)}** object with options.
-    `resolveTo` defines to which root url discovered urls in stylesheets should be resolved. (optional, default `{}`)
+-   `opts` **{resolveTo: [string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String), download: [Boolean](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)}** object with options.
+    `resolveTo` defines to which root url discovered urls in stylesheets should be resolved.
+    `download` defines whether resolved stylesheets should be downloaded and embedded, defaults to true.
 
 **Examples**
 
@@ -38,11 +29,11 @@ Insert html and receive back html with all stylesheets embedded. Can resolve rel
 const embedStylesheets = require('html-embed-stylesheets')
 
 async function main () {
-  const html = await embedStylesheets(html, { resolveTo: 'https://www.example.com' })
+  const { html } = await embedStylesheets(html, { resolveTo: 'https://www.example.com' })
   console.log(html)
 }
 
 main()
 ```
 
-Returns **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** html - the HTML with stylesheets embedded
+Returns **{html: [string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String), stylesheetUrls: \[[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)], stylesheets: \[[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)]}** an object returning the html with stylesheets embedded, an array of unique stylesheet urls that were found, and an array of stylesheets with inner urls resolved.

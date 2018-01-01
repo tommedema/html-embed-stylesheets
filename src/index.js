@@ -11,11 +11,12 @@ const defaultOpts = {
 
 /**
  * Insert html and receive back html with all stylesheets embedded. Can resolve relative urls inside stylesheets to a given root url.
+ * @function embedStylesheets
  * @param {string} html - the HTML to parse for stylesheets
- * @param { { resolveTo: string, download: boolean } } opts - object with options.
+ * @param { { resolveTo: string, download: Boolean } } opts - object with options.
  * `resolveTo` defines to which root url discovered urls in stylesheets should be resolved.
  * `download` defines whether resolved stylesheets should be downloaded and embedded, defaults to true.
- * @returns { { html: string, stylesheetUrls: Array<string>, stylesheets: Array<string> } an object returning the html with stylesheets embedded, an array of unique stylesheet urls that were found, and an array of stylesheets with inner urls resolved.
+ * @returns { { html: string, stylesheetUrls: [string], stylesheets: [string] } } - an object returning the html with stylesheets embedded, an array of unique stylesheet urls that were found, and an array of stylesheets with inner urls resolved.
  * @example
  * const embedStylesheets = require('html-embed-stylesheets')
  *
