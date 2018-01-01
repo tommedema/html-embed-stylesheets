@@ -2,6 +2,8 @@ const cheerio = require('cheerio')
 const url = require('url')
 const request = require('request-promise-native')
 const encodeUrl = require('encodeurl')
+const absCss = require('css-absolutely')
+
 const defaultOpts = {
   resolveTo: null,
   download: true
@@ -75,7 +77,7 @@ async function embedStylesheets (html, opts = {}) {
       if (statusCode >= 200 && statusCode < 300 && headers['content-type']
         && headers['content-type'].indexOf('text/css') !== -1) {
         if (opts.resolveTo) {
-          stylesheet = rebaseStylesheetUrls(stylesheet, sUrl)
+          stylesheet = absCss(stylesheet, sUrl)
         }
         
         stylesheets.push(stylesheet)
@@ -97,32 +99,6 @@ async function embedStylesheets (html, opts = {}) {
     stylesheets,
     notFounds
   }
-}
-
-function rebaseStylesheetUrls(stylesheet, resolveTo) {
-  const urlRegex = /url\(\s?["']?([^)'"]+)["']?\s?\).*/i
-  
-  let index = 0
-  while((found = urlRegex.exec(stylesheet.substring(index))) !== null)
-  {
-    const rawSrc = found[1]
-    const encodedSrc = encodeUrl(rawSrc.trim())
-    const parsedSrc = url.parse(encodedSrc)
-    if (!parsedSrc.protocol && parsedSrc.pathname) {
-      const resolvedSrc = url.resolve(resolveTo, encodedSrc)
-      const foundIndex = found.input.indexOf(rawSrc)
-      
-      stylesheet =
-        stylesheet.slice(0, index + foundIndex) +
-        resolvedSrc +
-        stylesheet.slice(index + foundIndex + rawSrc.length)
-        
-      index += resolvedSrc.length - rawSrc.length
-    }
-    index += found.index + rawSrc.length
-  }
-  
-  return stylesheet
 }
 
 module.exports = embedStylesheets
