@@ -1,6 +1,6 @@
 {
   "name": "html-embed-stylesheets",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Insert html and receive back html with all stylesheets embedded. Can resolve relative urls inside stylesheets to a given root url.",
   "main": "src/index.js",
   "scripts": {
