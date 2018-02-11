@@ -13,8 +13,10 @@ const ls = require('ls')
 const outputPath = `${__dirname}/output`
 const cheerio = require('cheerio')
 
+const whitelist404s = ['domraider.io.html', 'torquemag.io.html']
+
 async function main() {
-  const inputs = ls(`${__dirname}/input/*.html`).map(o => o.full)
+  const inputs = ls(`${__dirname}/input/*.html`).map(o => o.full).filter(n => n.indexOf('torquemag') !== -1)
   await mkdirp(path.dirname(outputPath))
   
   describe('e2e', function () {
@@ -35,14 +37,17 @@ async function main() {
         await writeFile(`${outputPath}/${baseName}`, html)
         $ = cheerio.load(html)
         
-        // should have no 404s except for domraider.io
-        notFounds.length.should.eql(baseName !== 'domraider.io.html' ? 0 : 1)
+        // should have no 404s except for whitelisted domains
+        if (!whitelist404s.includes(baseName)) {
+          notFounds.length.should.eql(0)
+        }
         
         // should have no more links
         $('link[type="text/css"],link[rel="stylesheet"]').length.should.eql(0)
         
         // size should now be significantly larger
         html.length.should.be.above(rawHtml.length*1.1)
+        
       })
     }
     

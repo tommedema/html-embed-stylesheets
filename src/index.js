@@ -65,6 +65,7 @@ async function embedStylesheets (html, opts = {}) {
   // download each stylesheet
   let stylesheets = []
   let notFounds = []
+  let index = 0
   if (opts.download) {
     for (let sUrl of stylesheetUrls) {
       let { statusCode, body: stylesheet, headers } = await request({
@@ -91,6 +92,13 @@ async function embedStylesheets (html, opts = {}) {
   
   // embed each stylesheet into html
   for (let stylesheet of stylesheets) {
+    
+    // resolve special case where svgs might use data:img uris with utf8 encoding
+    // and can therefore include <style> tags too; these must be removed
+    // see also https://css-tricks.com/probably-dont-base64-svg/
+    // and https://regex101.com/r/ieOR59/1
+    stylesheet = stylesheet.replace(/<style[\s\S]*?>([\s\S]*?)<\/style[\s\S]*?>/ig, '')
+    
     $('head').append(`<style>${stylesheet}</style>`)
   }
     
