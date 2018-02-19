@@ -37,37 +37,51 @@ async function embedStylesheets (html, opts = {}) {
   })
   
   // the sources to be resolved
-  const sources = []
+  let sources = []
   
-  // links
-  const $links = $('link[type="text/css"],link[rel="stylesheet"]')
-  .filter((i, link) => {
-    return link.attribs.href
-      && link.attribs.href.trim()
-      && sources.push(encodeUrl(link.attribs.href))
+  // gather links while storing their source href and original reference
+  $('link[type="text/css"],link[rel="stylesheet"]')
+  .each((i, link) => {
+    if (link.attribs.href && link.attribs.href.trim()) {
+      sources.push({
+        href: encodeUrl(link.attribs.href),
+        originalElement: link
+      })
+    }
   })
-  .remove()
   
   // remove any stylesheet preloads because these assets are now embedded
   $('link[rel="preload"][as="style"]').remove()
   $('link[rel="prefetch"][href*=".css"]').remove()
   
-  // generate a unique set of stylesheets to be embedded
-  // urls are resolved to the given base path
-  const stylesheetUrls = new Set()
-  for (var source of sources) {
-    if (opts.resolveTo) {
-      source = url.resolve(opts.resolveTo, source)
-    }
-    stylesheetUrls.add(source)
+  // resolve urls to the given base path
+  if (opts.resolveTo) {
+    sources = sources.map(source => {
+      source.href = url.resolve(opts.resolveTo, source.href)
+      return source
+    })
   }
+  
+  // remove duplicate sources
+  sources = sources
+  .filter((source, i, arr) => {
+    if (arr.map(mSource => mSource.href).indexOf(source.href) === i) {
+      return true
+    }
+    else {
+      $(source.originalElement).remove()
+      return false
+    }
+  })
   
   // download each stylesheet
   let stylesheets = []
   let notFounds = []
   let index = 0
   if (opts.download) {
-    for (let sUrl of stylesheetUrls) {
+    for (let source of sources) {
+      const sUrl = source.href
+      
       let { statusCode, body: stylesheet, headers } = await request({
         uri: sUrl,
         gzip: true,
@@ -82,7 +96,16 @@ async function embedStylesheets (html, opts = {}) {
           stylesheet = absCss(stylesheet, sUrl)
         }
         
-        stylesheets.push(stylesheet)
+        // resolve special case where svgs might use data:img uris with utf8 encoding
+        // and can therefore include <style> tags too; these must be removed
+        // see also https://css-tricks.com/probably-dont-base64-svg/
+        // and https://regex101.com/r/ieOR59/1
+        stylesheet = stylesheet.replace(/<style[\s\S]*?>([\s\S]*?)<\/style[\s\S]*?>/ig, '')
+        
+        stylesheets.push({
+          css: stylesheet,
+          originalElement: source.originalElement
+        })
       }
       else {
         notFounds.push(sUrl)
@@ -92,20 +115,13 @@ async function embedStylesheets (html, opts = {}) {
   
   // embed each stylesheet into html
   for (let stylesheet of stylesheets) {
-    
-    // resolve special case where svgs might use data:img uris with utf8 encoding
-    // and can therefore include <style> tags too; these must be removed
-    // see also https://css-tricks.com/probably-dont-base64-svg/
-    // and https://regex101.com/r/ieOR59/1
-    stylesheet = stylesheet.replace(/<style[\s\S]*?>([\s\S]*?)<\/style[\s\S]*?>/ig, '')
-    
-    $('head').append(`<style>${stylesheet}</style>`)
+    $(stylesheet.originalElement).replaceWith(`<style>${stylesheet.css}</style>`)
   }
     
   return {
     html: $.html(),
-    stylesheetUrls: Array.from(stylesheetUrls),
-    stylesheets,
+    stylesheetUrls: sources.map(o => o.href),
+    stylesheets: stylesheets.map(o => o.css),
     notFounds
   }
 }

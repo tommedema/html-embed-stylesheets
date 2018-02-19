@@ -228,5 +228,12 @@ describe('http mocking', function() {
       const { html } = await embed(input, { resolveTo: baseUrl })      
       html.should.be.equal(output)
     })
+    
+    it('should embed stylesheets at the same position as they were found', async () => {
+      const input = await readFile(`${__dirname}/cases/order.html`, { encoding: 'utf8' })
+      const output = await readFile(`${__dirname}/cases/order.output.html`, { encoding: 'utf8' })
+      const { html } = await embed(input, { resolveTo: baseUrl })      
+      html.should.be.equal(output)
+    })
   })
 })
