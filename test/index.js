@@ -182,7 +182,7 @@ describe('http mocking', function() {
       await embed(input, { resolveTo: baseUrl })
     })
     
-    it.only('should not embed style tags inside stylesheets', async () => {
+    it('should not embed style tags inside stylesheets', async () => {
       const input = await readFile(`${__dirname}/cases/utf8svg.html`, { encoding: 'utf8' })
       const output = await readFile(`${__dirname}/cases/utf8svg.output.html`, { encoding: 'utf8' })
       const { html } = await embed(input, { resolveTo: baseUrl })
