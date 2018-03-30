@@ -6,8 +6,7 @@
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha test",
     "e2e": "./node_modules/mocha/bin/mocha e2e --delay",
-    "standard": "./node_modules/standard/bin/cmd.js --env mocha",
-    "standard-fix": "npm run standard -- --fix",
+    "standard": "./node_modules/standard/bin/cmd.js --env mocha --fix",
     "docs": "./node_modules/documentation/bin/documentation.js lint src/** && ./node_modules/documentation/bin/documentation.js build src/** -f md >> README.md"
   },
   "keywords": [
@@ -21,6 +20,9 @@
   "bugs": {
     "url": "https://github.com/tommedema/html-embed-stylesheets/issues",
     "email": "tommedema@gmail.com"
+  },
+  "engines": {
+    "node": ">=8.0.0 <9.0.0"
   },
   "repository": "git@github.com:tommedema/html-embed-stylesheets.git",
   "author": "Tom Medema",
@@ -41,6 +43,7 @@
     "clipboardy": "^1.2.2",
     "css-absolutely": "^1.2.0",
     "encodeurl": "^1.0.1",
+    "parse-import": "^2.0.0",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5"
   }

@@ -1,0 +1,5 @@
+@import "http://external.com/main.css";
+@import "http://external.com/main2.css";
+body {
+    height: 100%;
+}

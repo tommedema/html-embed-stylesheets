@@ -219,6 +219,44 @@ describe('http mocking', function() {
       stylesheetUrls.length.should.be.equal(1)
     })
   })
+
+  // @import statements
+  describe('@import statement embedding', () => {
+    it('should import from external css files (cross domain) with absolute paths', async () => {
+      const input = await readFile(`${__dirname}/cases/import-ext-css.html`)
+      const expected = await readFile(`${__dirname}/cases/import-ext-css.output.html`, { encoding: 'utf8' })
+      const { html } = await embed(input, { resolveTo: baseUrl })
+      html.should.be.equal(expected)
+    })
+
+    it('should import from external css files (same domain) with relative paths', async () => {
+      const input = await readFile(`${__dirname}/cases/import-css.html`)
+      const expected = await readFile(`${__dirname}/cases/import-css.output.html`, { encoding: 'utf8' })
+      const { html } = await embed(input, { resolveTo: baseUrl })
+      html.should.be.equal(expected)
+    })
+
+    it('should import from embedded css', async () => {
+      const input = await readFile(`${__dirname}/cases/import-embedded-css.html`)
+      const expected = await readFile(`${__dirname}/cases/import-embedded-css.output.html`, { encoding: 'utf8' })
+      const { html } = await embed(input, { resolveTo: baseUrl })
+      html.should.be.equal(expected)
+    })
+
+    it('should import with media queries in external css files', async () => {
+      const input = await readFile(`${__dirname}/cases/import-css-media.html`)
+      const expected = await readFile(`${__dirname}/cases/import-css-media.output.html`, { encoding: 'utf8' })
+      const { html } = await embed(input, { resolveTo: baseUrl })
+      html.should.be.equal(expected)
+    })
+
+    it('should import with media queries in embedded css files', async () => {
+      const input = await readFile(`${__dirname}/cases/import-embedded-css-media.html`)
+      const expected = await readFile(`${__dirname}/cases/import-embedded-css-media.output.html`, { encoding: 'utf8' })
+      const { html } = await embed(input, { resolveTo: baseUrl })
+      html.should.be.equal(expected)
+    })
+  })
   
   //replacing
   describe('replacing html', () => {

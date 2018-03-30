@@ -1,0 +1,4 @@
+@import "assets/main.css" screen and (orientation:landscape);
+body {
+    height: 100%;
+}

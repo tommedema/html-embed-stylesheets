@@ -3,6 +3,7 @@ const url = require('url')
 const request = require('request-promise-native')
 const encodeUrl = require('encodeurl')
 const absCss = require('css-absolutely')
+const parseImport = require('parse-import')
 
 const defaultOpts = {
   resolveTo: null,
@@ -49,6 +50,24 @@ async function embedStylesheets (html, opts = {}) {
       })
     }
   })
+
+  // gather sources from @import statements in embedded stylesheets
+  $('style')
+  .each((i, style) => {
+    const $style = $(style)
+    const imports = parseImport($style.html())
+    for (let imp of imports) {
+      sources.push({
+        href: encodeUrl(imp.path),
+        originalElement: style,
+        condition: imp.condition,
+        insertBefore: true
+      })
+
+      // remove the now embedded import statement
+      $style.html($style.html().replace(`${imp.rule};`, ''))
+    }
+  })
   
   // remove any stylesheet preloads because these assets are now embedded
   $('link[rel="preload"][as="style"]').remove()
@@ -80,48 +99,94 @@ async function embedStylesheets (html, opts = {}) {
   let index = 0
   if (opts.download) {
     for (let source of sources) {
-      const sUrl = source.href
-      
-      let { statusCode, body: stylesheet, headers } = await request({
-        uri: sUrl,
-        gzip: true,
-        encoding: 'utf8',
-        resolveWithFullResponse: true,
-        simple: false
-      })
-      
-      if (statusCode >= 200 && statusCode < 300 && headers['content-type']
-        && headers['content-type'].indexOf('text/css') !== -1) {
-        if (opts.resolveTo) {
-          stylesheet = absCss(stylesheet, sUrl)
-        }
-        
-        // resolve special case where svgs might use data:img uris with utf8 encoding
-        // and can therefore include <style> tags too; these must be removed
-        // see also https://css-tricks.com/probably-dont-base64-svg/
-        // and https://regex101.com/r/ieOR59/1
-        stylesheet = stylesheet.replace(/<style[\s\S]*?>([\s\S]*?)<\/style[\s\S]*?>/ig, '')
-        
-        stylesheets.push({
-          css: stylesheet,
-          originalElement: source.originalElement
-        })
-      }
-      else {
-        notFounds.push(sUrl)
-      }
+      const results = await getStylesheetsFromSrc(source, opts.resolveTo)
+      stylesheets = stylesheets.concat(results.stylesheets)
+      notFounds = notFounds.concat(results.notFounds)
     }
   }
   
   // embed each stylesheet into html
   for (let stylesheet of stylesheets) {
-    $(stylesheet.originalElement).replaceWith(`<style>${stylesheet.css}</style>`)
+    if (stylesheet.condition) {
+      stylesheet.css = `
+      @media ${stylesheet.condition} {
+        ${stylesheet.css}
+      }
+      `
+    }
+
+    if (stylesheet.insertBefore) {
+      $(stylesheet.originalElement).before(`<style>${stylesheet.css}</style>`)
+    }
+    else {
+      $(stylesheet.originalElement).replaceWith(`<style>${stylesheet.css}</style>`)
+    }
   }
     
   return {
     html: $.html(),
     stylesheetUrls: sources.map(o => o.href),
     stylesheets: stylesheets.map(o => o.css),
+    notFounds
+  }
+}
+
+async function getStylesheetsFromSrc(source, resolveTo = '', insertBefore = false) {
+  if (source.insertBefore) insertBefore = true
+  
+  const sUrl = source.href
+  let stylesheets = []
+  let notFounds = []
+      
+  let { statusCode, body: stylesheet, headers } = await request({
+    uri: sUrl,
+    gzip: true,
+    encoding: 'utf8',
+    resolveWithFullResponse: true,
+    simple: false
+  })
+  
+  if (statusCode >= 200 && statusCode < 300 && headers['content-type']
+    && headers['content-type'].indexOf('text/css') !== -1) {
+    if (resolveTo) {
+      stylesheet = absCss(stylesheet, sUrl)
+    }
+    
+    // resolve special case where svgs might use data:img uris with utf8 encoding
+    // and can therefore include <style> tags too; these must be removed
+    // see also https://css-tricks.com/probably-dont-base64-svg/
+    // and https://regex101.com/r/ieOR59/1
+    stylesheet = stylesheet.replace(/<style[\s\S]*?>([\s\S]*?)<\/style[\s\S]*?>/ig, '')
+
+    // embed imports, if any
+    const imports = parseImport(stylesheet)
+    for (let imp of imports) {
+      const href = url.resolve(resolveTo, imp.path)
+      const results = await getStylesheetsFromSrc({
+        href: href,
+        condition: imp.condition,
+        originalElement: source.originalElement
+      }, resolveTo, true)
+      stylesheets = stylesheets.concat(results.stylesheets)
+      notFounds = notFounds.concat(results.notFounds)
+
+      // remove the now embedded import statement
+      stylesheet = stylesheet.replace(`${imp.rule};`, '')
+    }
+    
+    stylesheets.push({
+      css: stylesheet,
+      originalElement: source.originalElement,
+      condition: source.condition,
+      insertBefore
+    })
+  }
+  else {
+    notFounds.push(sUrl)
+  }
+
+  return {
+    stylesheets,
     notFounds
   }
 }
